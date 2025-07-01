@@ -1,0 +1,44 @@
+uv run open_instruct/grpo_fast.py \
+    --exp_name qwen3_1.7b_grpo_fast_zero_orz \
+    --beta 0.01 \
+    --kl_estimator kl3 \
+    --learning_rate 5e-7 \
+    --dataset_mixer_list ai2-adapt-dev/rlvr_gsm8k_zs 64 \
+    --dataset_mixer_list_splits train \
+    --dataset_mixer_eval_list ai2-adapt-dev/rlvr_gsm8k_zs 16 \
+    --dataset_mixer_eval_list_splits train \
+    --max_token_length 256 \
+    --max_prompt_token_length 256 \
+    --response_length 128 \
+    --pack_length 1024 \
+    --model_name_or_path Qwen/Qwen3-0.6B \
+    --stop_strings "</answer>" \
+    --apply_r1_style_format_reward True \
+    --apply_verifiable_reward True \
+    --non_stop_penalty False \
+    --chat_template_name r1_simple_chat_postpend_think \
+    --temperature 1.0 \
+    --masked_mean_axis 1 \
+    --total_episodes 256 \
+    --deepspeed_stage 2 \
+    --per_device_train_batch_size 1 \
+    --num_mini_batches 1 \
+    --num_epochs 1 \
+    --num_unique_prompts_rollout 1 \
+    --num_samples_per_prompt_rollout 8 \
+    --vllm_tensor_parallel_size 1 \
+    --single_gpu_mode \
+    --offload_ref \
+    --vllm_sleep_mode \
+    --async_mode False \
+    --gradient_checkpointing \
+    --vllm_sync_backend gloo \
+    --lr_scheduler_type linear \
+    --seed 3 \
+    --num_evals 200 \
+    --save_freq 40 \
+    --try_launch_beaker_eval_jobs_on_weka \
+    --gradient_checkpointing \
+    --wandb_project_name r1 \
+    --wandb_entity mila-language-drift \
+    --with_tracking False $@
