@@ -10,15 +10,15 @@ python open_instruct/grpo_fast.py \
     --per_device_train_batch_size 1 \
     --num_unique_prompts_rollout 16 \
     --num_samples_per_prompt_rollout 4 \
-    --model_name_or_path HuggingFaceTB/SmolLM2-135M \
+    --model_name_or_path Qwen/Qwen3-0.6B \
     --stop_strings "</answer>" \
     --apply_r1_style_format_reward \
     --apply_verifiable_reward true \
-    --temperature 0.7 \
+    --temperature 1.0 \
     --ground_truths_key ground_truth \
     --chat_template_name r1_simple_chat_postpend_think \
     --learning_rate 3e-7 \
-    --total_episodes 200 \
+    --total_episodes 512 \
     --deepspeed_stage 2 \
     --num_epochs 1 \
     --num_learners_per_node 1 \
@@ -32,4 +32,5 @@ python open_instruct/grpo_fast.py \
     --vllm_enforce_eager \
     --gradient_checkpointing \
     --single_gpu_mode \
-    # --with_tracking
+    --with_tracking False \
+    --push_to_hub False
