@@ -1194,17 +1194,18 @@ def data_preparation_thread(
             unsolved_batch_size_ratio = ((scores != max_possible_score) > 0).sum() / len(scores)
             # In GRPO, if the std of grouped rewards is 0, then there is zero gradient for the batch
             # of args.num_samples_per_prompt_rollout responses, so we need to filter out those batches
-            non_zero_std_mask = scores_per_prompt.std(axis=-1) != 0
-            real_batch_size_ratio = non_zero_std_mask.sum() * args.num_samples_per_prompt_rollout / len(scores)
-            expanded_mask = np.repeat(non_zero_std_mask, args.num_samples_per_prompt_rollout)
-            non_zero_gradient_index = np.where(expanded_mask)[0]
-            advantages = advantages[non_zero_gradient_index]
-            scores = scores[non_zero_gradient_index]
-            responses = [responses[i] for i in non_zero_gradient_index]
-            masks = [masks[i] for i in non_zero_gradient_index]
-            queries = [queries[i] for i in non_zero_gradient_index]
-            ground_truths = [ground_truths[i] for i in non_zero_gradient_index]
-            datasets = [datasets[i] for i in non_zero_gradient_index]
+            real_batch_size_ratio = 1.0
+            # non_zero_std_mask = scores_per_prompt.std(axis=-1) != 0
+            # real_batch_size_ratio = non_zero_std_mask.sum() * args.num_samples_per_prompt_rollout / len(scores)
+            # expanded_mask = np.repeat(non_zero_std_mask, args.num_samples_per_prompt_rollout)
+            # non_zero_gradient_index = np.where(expanded_mask)[0]
+            # advantages = advantages[non_zero_gradient_index]
+            # scores = scores[non_zero_gradient_index]
+            # responses = [responses[i] for i in non_zero_gradient_index]
+            # masks = [masks[i] for i in non_zero_gradient_index]
+            # queries = [queries[i] for i in non_zero_gradient_index]
+            # ground_truths = [ground_truths[i] for i in non_zero_gradient_index]
+            # datasets = [datasets[i] for i in non_zero_gradient_index]
 
         with Timer("📦 [Data Preparation Thread] Packing sequences"):
             packed_sequences = pack_sequences(
