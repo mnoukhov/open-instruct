@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --gres=gpu:l40s:1
+#SBATCH --gres=gpu:a100l:1
 #SBATCH --mem=24G
 #SBATCH -c 4
 #SBATCH --time=4:00:00
@@ -9,7 +9,7 @@ source mila.sh
 exp_name="grpo_1.7b_base"
 
 model_name_or_path="Qwen/Qwen3-1.7B-Base"
-dataset_list="hamishivi/hamishivi_rlvr_orz_math_57k_collected_all_filtered_hamishivi_qwen2_5_openthoughts2"
+dataset_list="hamishivi/hamishivi_rlvr_orz_math_57k_collected_all_filtered_hamishivi_qwen2_5_openthoughts2 1.0"
 
 uv run open_instruct/grpo_fast.py \
     --exp_name $exp_name \
@@ -23,7 +23,7 @@ uv run open_instruct/grpo_fast.py \
     --num_unique_prompts_rollout 16 \
     --num_samples_per_prompt_rollout 8 \
     --num_mini_batches 4 \
-    --total_episodes 64000 \
+    --total_episodes 25600 \
     --stop_strings "<|endoftext|>" "</answer>" \
     --model_name_or_path $model_name_or_path \
     --chat_template_name r1_simple_chat_postpend_think \
