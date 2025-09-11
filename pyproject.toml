@@ -3,7 +3,7 @@ name = "open-instruct"
 version = "0.1.0"
 description = "Train open, instruction-following language models"
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "accelerate>=1.1.1",
     "antlr4-python3-runtime==4.11",
@@ -29,7 +29,7 @@ dependencies = [
     "langdetect==1.0.9",
     "immutabledict==1.2.0",
     "pytest-xdist==3.8.0",
-    "flash-attn>=2.8.0.post2; platform_system != 'Darwin'",
+    "flash-attn>=2.7.4.post1; platform_system != 'Darwin'",
     "liger-kernel>=0.5.4; platform_system != 'Darwin'",
 ]
 
@@ -45,22 +45,21 @@ flash-attn = [{ requirement = "torch", match-runtime = true }]
 
 [tool.uv.extra-build-variables]
 flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }
-
 # pytorch related setups
-[tool.uv.sources]
-torch = [
-  { index = "pytorch-cu128", marker = "platform_system != 'Darwin'"},
-]
-
-[[tool.uv.index]]
-name = "pytorch-cu128"
-url = "https://download.pytorch.org/whl/cu128"
-explicit = true
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
+# [tool.uv.sources]
+# torch = [
+#   { index = "pytorch-cu126", marker = "platform_system != 'Darwin'"},
+# ]
+#
+# [[tool.uv.index]]
+# name = "pytorch-cu126"
+# url = "https://download.pytorch.org/whl/cu126"
+# explicit = true
+#
+# [[tool.uv.index]]
+# name = "pytorch-cpu"
+# url = "https://download.pytorch.org/whl/cpu"
+# explicit = true
 
 [project.optional-dependencies]
 code = [
@@ -74,6 +73,13 @@ code = [
 preview = true
 python-preference = "only-managed"
 link-mode = "hardlink"
+find-links = [
+    "/cvmfs/soft.computecanada.ca/custom/python/wheelhouse/gentoo2023/x86-64-v4/",
+    "/cvmfs/soft.computecanada.ca/custom/python/wheelhouse/gentoo2023/x86-64-v3/",
+    "/cvmfs/soft.computecanada.ca/custom/python/wheelhouse/gentoo2023/generic/",
+    "/cvmfs/soft.computecanada.ca/custom/python/wheelhouse/generic/"
+]
+index-strategy = "unsafe-first-match"
 
 [dependency-groups]
 dev = [
