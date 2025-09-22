@@ -2798,7 +2798,14 @@ def main(args: Args, tc: TokenizerConfig, model_config: ModelConfig):
     pprint([args, model_config])
 
     # Initialize Ray before creating Ray objects
-    ray.init(dashboard_host="0.0.0.0")
+    ray.init(
+        dashboard_host="0.0.0.0",
+        runtime_env={
+            "env_vars": {"UV_ACTIVE": "1"},  # tells uv to use the active environment
+            "working_dir": ".",  # keep current dir synced
+            "excludes": [".git"],  # optional, to avoid big uploads
+        },
+    )
 
     # Create Ray queues.
     # Since we now send/receive individual prompts, queue size should accommodate
