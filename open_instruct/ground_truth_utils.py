@@ -38,6 +38,14 @@ from open_instruct.utils import extract_final_answer
 
 logger = logger_utils.setup_logger(__name__)
 
+# remove excessive logging from liteLLM
+logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+logging.getLogger("litellm").setLevel(logging.ERROR)
+logging.getLogger("litellm.cost_calculator").setLevel(logging.CRITICAL)
+logging.getLogger("litellm._client").setLevel(logging.CRITICAL)
+logging.getLogger("cost_calculator").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 
 @dataclass
 class VerifierConfig:
@@ -431,6 +439,25 @@ class F1Verifier(VerifierFunction):
         return VerificationResult(score=score)
 
 
+class PuzzleMatcherVerifier(VerifierFunction):
+    """
+    Verifier for Puzzle tasks that require string matching (exact matching).
+
+    It checks if the model output matches the ground truth answer.
+    """
+
+    def __init__(self, verifier_config: Optional[VerifierConfig] = None) -> None:
+        super().__init__("puzzle", verifier_config=verifier_config, weight=1.0)
+
+    def __call__(
+        self, tokenized_prediction: List[int], prediction: str, label: str, query: Optional[str] = None
+    ) -> VerificationResult:
+        # remove answer tags from the prediction
+        prediction = remove_thinking_section(prediction)
+        score = float(normalize_answer(prediction) == normalize_answer(label))
+        return VerificationResult(score=score)
+
+
 class ReSearchVerifierF1(VerifierFunction):
     """
     Verifier from ReSearch paper (https://arxiv.org/abs/2503.19470)
@@ -663,8 +690,7 @@ class LMJudgeVerifier(VerifierFunction):
         for attempt in range(max_retries):
             # judges the quality of a response
             try:
-                system_prompt = "Do not generate text between the <think> and </think> tags."  # "You are a concise assistant who gives very short explanations before giving a quality score."
-                messages = build_messages(prompt, system_prompt)
+                messages = build_messages(prompt)
 
                 # Faeze: check if the request would exceed context window
                 # Import the context window checker
