@@ -52,6 +52,8 @@ uv run --active open_instruct/grpo_fast.py \
     --single_gpu_mode \
     --deepspeed_stage 2 \
     --async_steps 0 \
+    --eval_temperature 0. \
+    --eval_top_p 0.95 \
     --vllm_sync_backend gloo \
     --fused_optimizer \
     --wandb_entity $WANDB_ENTITY \

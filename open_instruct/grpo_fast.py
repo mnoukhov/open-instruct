@@ -356,6 +356,10 @@ class Args:
     queue_dashboard_port: Optional[int] = None
     """optional port for the dashboard server (if None, finds a free port automatically)"""
 
+    # Eval
+    eval_temperature: float = 0.7
+    eval_top_p: float = 0.95
+
     # Experiment tracking
     verbose: bool = False
     """If toggled, debug output will be shown"""
@@ -2079,7 +2083,8 @@ def create_generation_configs(args: Args):
         output_kind=vllm.sampling_params.RequestOutputKind.FINAL_ONLY,
     )
     eval_generation_config = generation_config.clone()
-    eval_generation_config.temperature = 0.0
+    eval_generation_config.temperature = args.eval_temperature
+    eval_generation_config.top_p = args.eval_top_p
     eval_generation_config.n = 1
     return {"train": generation_config, "eval": eval_generation_config}
 
