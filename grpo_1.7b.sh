@@ -11,6 +11,9 @@ exp_name="grpo_1.7b_base"
 model_name_or_path="Qwen/Qwen3-1.7B-Base"
 dataset_list="hamishivi/hamishivi_rlvr_orz_math_57k_collected_all_filtered_hamishivi_qwen2_5_openthoughts2 1.0"
 
+# export RAY_NODE_PORT=8888
+# uv run ray start --head --port=$RAY_NODE_PORT --dashboard-host=0.0.0.0
+
 uv run open_instruct/grpo_fast.py \
     --exp_name $exp_name \
     --output_dir $SCRATCH/open_instruct/results/ \
@@ -33,15 +36,16 @@ uv run open_instruct/grpo_fast.py \
     --learning_rate 1e-6 \
     --num_epochs 1 \
     --num_learners_per_node 1 \
-    --vllm_tensor_parallel_size 1 \
+    --vllm_num_engines 1 \
     --vllm_enable_prefix_caching \
     --beta 0.001 \
     --seed 3 \
     --save_freq 1000 \
-    --vllm_gpu_memory_utilization 0.4 \
-    --single_gpu_mode \
+    --vllm_gpu_memory_utilization 0.6 \
     --deepspeed_stage 2 \
-    --async_steps 0 \
-    --vllm_sync_backend gloo \
+    --gradient_checkpointing \
+    --async_steps 1 \
     --fused_optimizer \
-    --with_tracking $@  
+    --wandb_entity $WANDB_ENTITY \
+    --hf_entity $HF_ENTITY \
+    --with_tracking $@

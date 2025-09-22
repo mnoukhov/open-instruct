@@ -78,7 +78,7 @@ from ray.util import queue as ray_queue
 from ray.util.placement_group import PlacementGroup, placement_group
 from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 from rich.pretty import pprint
-from tqdm import tqdm
+from tqdm import tqdm, trange
 from transformers import AutoModelForCausalLM, PreTrainedModel, PreTrainedTokenizer, get_scheduler
 from transformers.integrations import HfDeepSpeedConfig
 
@@ -2636,7 +2636,7 @@ def run_training(
 
     num_total_tokens = 0
     training_start_time = time.time()  # Track overall training start time
-    for training_step in range(resume_training_step, args.num_training_steps + 1):
+    for training_step in trange(resume_training_step, args.num_training_steps + 1, desc="Training step"):
         start_time = time.perf_counter()
 
         if (
