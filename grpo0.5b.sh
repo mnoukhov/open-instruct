@@ -20,8 +20,9 @@ EXP_NAME="grpo_0.5b"
 seed=42
 num_mini_batches=$1
 async_steps=0
+tv_cliprange=$2
 uv run --active open_instruct/grpo_fast.py \
-    --tv_cliprange 0.2 \
+    --tv_cliprange $tv_cliprange \
     --exp_name $EXP_NAME \
     --output_dir $SCRATCH/open_instruct/results/ \
     --dataset_mixer_list $dataset_list \
@@ -62,5 +63,5 @@ uv run --active open_instruct/grpo_fast.py \
     --wandb_entity $WANDB_ENTITY \
     --wandb_project $WANDB_PROJECT \
     --async_steps $async_steps \
-    --with_tracking False
+    --with_tracking
 # done
