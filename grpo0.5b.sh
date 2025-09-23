@@ -33,9 +33,9 @@ uv run --active open_instruct/grpo_fast.py \
     --num_samples_per_prompt_rollout 8 \
     --num_mini_batches 1 \
     --total_episodes 32000 \
-    --stop_strings "<|endoftext|>" "</answer>" \
+    --stop_strings "<|endoftext|>" \
     --model_name_or_path $model_name_or_path \
-    --chat_template_name r1_simple_chat_postpend_think \
+    --chat_template_name simple_think \
     --apply_verifiable_reward \
     --non_stop_penalty False \
     --temperature 1.0 \
@@ -58,4 +58,5 @@ uv run --active open_instruct/grpo_fast.py \
     --fused_optimizer \
     --wandb_entity $WANDB_ENTITY \
     --wandb_project $WANDB_PROJECT \
+    --eval_on_step_0 \
     --with_tracking $@ 

@@ -185,6 +185,15 @@ CHAT_TEMPLATES = {
         "{% if loop.last and not add_generation_prompt %}{{ eos_token }}{% endif %}"
         "{% endfor %}"
     ),
+    "simple_think": (
+        "{% for message in messages %}"
+        "{{ '\n\n' if not loop.first else '' }}"
+        "{{ message['content'] }}"
+        "{% if loop.last and add_generation_prompt %}"
+        "{{ 'Lets think step by step and output the final answer at the end.' }}"
+        "{% endif %}"
+        "{% endfor %}"
+    ),
     "assistant_message_only": (
         "{% for message in messages %}"
         "{% if message['role'] == 'assistant' %}"
