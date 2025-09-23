@@ -1034,13 +1034,14 @@ class PolicyTrainerRayProcess(RayProcess):
                             main_grad = mb_advantages[:, 1:]
                             ref_grad = torch.sign(logprobs_diff)
                             tv = (ratio - 1).abs().mean().item() / 2
-                            pg_losses = -mb_advantages[:, 1:] * ratio
-                            pg_losses_detach = pg_losses.detach()
-                            if tv > args.tv_cliprange / 2:
-                                mask = main_grad * ref_grad > 0
-                                pg_loss_max = torch.where(mask, pg_losses_detach, pg_losses).mean()
-                            else:
-                                pg_loss_max = pg_losses
+                        pg_losses = -mb_advantages[:, 1:] * ratio
+                        pg_losses_detach = pg_losses.detach()
+                        if tv > args.tv_cliprange / 2:
+                            mask = main_grad * ref_grad > 0
+                            pg_loss_max = torch.where(mask, pg_losses_detach, pg_losses).mean()
+                        else:
+                            pg_loss_max = pg_losses
+                            mask = None
                     else:
                         pg_losses = -mb_advantages[:, 1:] * ratio
                         pg_losses2 = -mb_advantages[:, 1:] * torch.clamp(
