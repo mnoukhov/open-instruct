@@ -248,6 +248,8 @@ class Args:
     """the lower clip range"""
     clip_higher: float = 0.2
     """the higher clip range. Sometimes we want this to be higher, see DAPO (https://arxiv.org/abs/2503.14476)"""
+    tv_cliprange: Optional[float] = None
+    """tv cliprange"""
     inflight_updates: bool = False
     """Enable immediate stopping of request processing when should_stop is set, allowing for quick pausing and resumption"""
     kl_estimator: Literal["kl1", "kl2", "kl3", "kl4"] = "kl3"
@@ -1027,11 +1029,24 @@ class PolicyTrainerRayProcess(RayProcess):
                     # Calculate the policy's loss
                     logprobs_diff = mb_new_logprobs - mb_old_logprobs
                     ratio = torch.exp(logprobs_diff)
-                    pg_losses = -mb_advantages[:, 1:] * ratio
-                    pg_losses2 = -mb_advantages[:, 1:] * torch.clamp(
-                        ratio, 1.0 - args.clip_lower, 1.0 + args.clip_higher
-                    )
-                    pg_loss_max = torch.max(pg_losses, pg_losses2)
+                    if args.tv_cliprange is not None:
+                        with torch.no_grad():
+                            main_grad = mb_advantages[:, 1:]
+                            ref_grad = torch.sign(logprobs_diff)
+                            tv = (ratio - 1).abs().mean().item() / 2
+                            pg_losses = -mb_advantages[:, 1:] * ratio
+                            pg_losses_detach = pg_losses.detach()
+                            if tv > args.tv_cliprange / 2:
+                                mask = main_grad * ref_grad > 0
+                                pg_loss_max = torch.where(mask, pg_losses_detach, pg_losses).mean()
+                            else:
+                                pg_loss_max = pg_losses
+                    else:
+                        pg_losses = -mb_advantages[:, 1:] * ratio
+                        pg_losses2 = -mb_advantages[:, 1:] * torch.clamp(
+                            ratio, 1.0 - args.clip_lower, 1.0 + args.clip_higher
+                        )
+                        pg_loss_max = torch.max(pg_losses, pg_losses2)
 
                     # Here we recalculate kl: we want the KL loss to backpropagate through the model
                     # We also clamp the KL loss to avoid numerical instability
@@ -1071,12 +1086,19 @@ class PolicyTrainerRayProcess(RayProcess):
                             kl_loss_stats[i] = kl3_stats[i] * args.beta
                         elif args.kl_estimator == "kl4":
                             kl_loss_stats[i] = kl4_stats[i] * args.beta
-                        pg_clipfrac_stats[i] = masked_mean(
-                            (pg_losses2 > pg_losses).float(), mb_response_masks_bool, args.masked_mean_axis
-                        )
-                        pg_clipfraclow_stats[i] = masked_mean(
-                            (pg_losses2 < pg_losses).float(), mb_response_masks_bool, args.masked_mean_axis
-                        )
+                        if args.tv_cliprange is not None:
+                            pg_clipfrac_stats[i] = masked_mean(
+                                ((tv > args.tv_cliprange / 2) * (main_grad * ref_grad > 0)).float(),
+                                mb_response_masks_bool,
+                                args.masked_mean_axis,
+                            )
+                        else:
+                            pg_clipfrac_stats[i] = masked_mean(
+                                (pg_losses2 > pg_losses).float(), mb_response_masks_bool, args.masked_mean_axis
+                            )
+                            pg_clipfraclow_stats[i] = masked_mean(
+                                (pg_losses2 < pg_losses).float(), mb_response_masks_bool, args.masked_mean_axis
+                            )
                         pg_loss_stats[i] = masked_mean(pg_loss_max, mb_response_masks_bool, args.masked_mean_axis)
                         loss_stats[i] = loss
                         ratio_stats[i] = masked_mean(ratio, mb_response_masks_bool, args.masked_mean_axis)

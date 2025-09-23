@@ -2,7 +2,7 @@
 #SBATCH --gres=gpu:l40s:1
 #SBATCH --mem=24G
 #SBATCH -c 4
-#SBATCH --time=1:00:00
+#SBATCH --time=2:00:00
 #SBATCH -p main
 
 source mila.sh
@@ -16,8 +16,12 @@ LOCAL_EVALS="ai2-adapt-dev/rlvr_gsm8k_zs 1.0"
 LOCAL_EVAL_SPLITS="test"
 EXP_NAME="grpo_0.5b"
 
-
+# for seed in {0..2}; do
+seed=42
+num_mini_batches=$1
+async_steps=0
 uv run --active open_instruct/grpo_fast.py \
+    --tv_cliprange 0.2 \
     --exp_name $EXP_NAME \
     --output_dir $SCRATCH/open_instruct/results/ \
     --dataset_mixer_list $dataset_list \
@@ -29,10 +33,10 @@ uv run --active open_instruct/grpo_fast.py \
     --response_length 512 \
     --pack_length 8192 \
     --per_device_train_batch_size 1 \
-    --num_unique_prompts_rollout 16 \
+    --num_unique_prompts_rollout $((16*num_mini_batches)) \
     --num_samples_per_prompt_rollout 8 \
-    --num_mini_batches 1 \
-    --total_episodes 32000 \
+    --num_mini_batches $num_mini_batches \
+    --total_episodes 32768 \
     --stop_strings "<|endoftext|>" \
     --model_name_or_path $model_name_or_path \
     --chat_template_name simple_think \
@@ -45,18 +49,18 @@ uv run --active open_instruct/grpo_fast.py \
     --vllm_tensor_parallel_size 1 \
     --vllm_enable_prefix_caching \
     --beta 0.0 \
-    --seed 42 \
+    --seed $seed \
     --save_freq 1000 \
-    --local_eval_every 50 \
+    --local_eval_every $(( 64 / $num_mini_batches)) \
     --vllm_gpu_memory_utilization 0.45 \
     --single_gpu_mode \
     --deepspeed_stage 2 \
-    --async_steps 0 \
     --eval_temperature 0. \
     --eval_top_p 0.95 \
     --vllm_sync_backend gloo \
     --fused_optimizer \
     --wandb_entity $WANDB_ENTITY \
     --wandb_project $WANDB_PROJECT \
-    --eval_on_step_0 \
-    --with_tracking $@
+    --async_steps $async_steps \
+    --with_tracking False
+# done
