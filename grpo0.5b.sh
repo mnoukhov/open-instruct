@@ -11,8 +11,8 @@ WANDB_ENTITY=mnoukhov
 WANDB_PROJECT=open-instruct
 
 model_name_or_path="Qwen/Qwen2.5-0.5B"
-dataset_list="ai2-adapt-dev/rlvr_gsm8k_zs 1.0"                                                                                                                                                  
-LOCAL_EVALS="ai2-adapt-dev/rlvr_gsm8k_zs 1.0"                                                                                                                                               
+dataset_list="ai2-adapt-dev/rlvr_gsm8k_zs 1.0"
+LOCAL_EVALS="ai2-adapt-dev/rlvr_gsm8k_zs 1.0"
 LOCAL_EVAL_SPLITS="test"
 EXP_NAME="grpo_0.5b"
 
@@ -48,7 +48,7 @@ uv run --active open_instruct/grpo_fast.py \
     --seed 42 \
     --save_freq 1000 \
     --local_eval_every 50 \
-    --vllm_gpu_memory_utilization 0.5 \
+    --vllm_gpu_memory_utilization 0.45 \
     --single_gpu_mode \
     --deepspeed_stage 2 \
     --async_steps 0 \
@@ -59,4 +59,4 @@ uv run --active open_instruct/grpo_fast.py \
     --wandb_entity $WANDB_ENTITY \
     --wandb_project $WANDB_PROJECT \
     --eval_on_step_0 \
-    --with_tracking $@ 
+    --with_tracking $@

@@ -986,6 +986,7 @@ class PolicyTrainerRayProcess(RayProcess):
             kl4_stats = torch.zeros(len(collated_query_responses))
             kl_loss_stats = torch.zeros(len(collated_query_responses))
             pg_clipfrac_stats = torch.zeros(len(collated_query_responses))
+            pg_clipfraclow_stats = torch.zeros(len(collated_query_responses))
             pg_loss_stats = torch.zeros(len(collated_query_responses))
             loss_stats = torch.zeros(len(collated_query_responses))
             ratio_stats = torch.zeros(len(collated_query_responses))
@@ -1073,6 +1074,9 @@ class PolicyTrainerRayProcess(RayProcess):
                         pg_clipfrac_stats[i] = masked_mean(
                             (pg_losses2 > pg_losses).float(), mb_response_masks_bool, args.masked_mean_axis
                         )
+                        pg_clipfraclow_stats[i] = masked_mean(
+                            (pg_losses2 < pg_losses).float(), mb_response_masks_bool, args.masked_mean_axis
+                        )
                         pg_loss_stats[i] = masked_mean(pg_loss_max, mb_response_masks_bool, args.masked_mean_axis)
                         loss_stats[i] = loss
                         ratio_stats[i] = masked_mean(ratio, mb_response_masks_bool, args.masked_mean_axis)
@@ -1091,6 +1095,8 @@ class PolicyTrainerRayProcess(RayProcess):
                 self.local_metrics.add("loss/kl_avg", kl_loss_stats.mean())
                 self.local_metrics.add("loss/total_avg", loss_stats.mean())
                 self.local_metrics.add("policy/clipfrac_avg", pg_clipfrac_stats.mean())
+                self.local_metrics.add("policy/clipfraclow_avg", pg_clipfraclow_stats.mean())
+                self.local_metrics.add("policy/clipfrac_total_avg", (pg_clipfrac_stats + pg_clipfraclow_stats).mean())
                 self.local_metrics.add("val/ratio", ratio_stats.mean())
                 self.local_metrics.add("val/ratio_var", ratio_stats.var())
                 if args.record_entropy:
