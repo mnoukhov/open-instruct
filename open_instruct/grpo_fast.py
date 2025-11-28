@@ -241,7 +241,7 @@ class Args:
     """the lower clip range"""
     clip_higher: float = 0.2
     """the higher clip range. Sometimes we want this to be higher, see DAPO (https://arxiv.org/abs/2503.14476)"""
-    tv_cliprange: Optional[float] = None
+    tv_cliprange: float | None = None
     """tv cliprange"""
     truncated_importance_sampling_ratio_cap: float = 0.0
     """The maximum cap for truncated importance sampling ratio (0 means disabled)"""
@@ -546,8 +546,8 @@ class Args:
                 "`filter_zero_std_samples` cannot be True when `num_samples_per_prompt_rollout` is 1, "
                 "as the reward standard deviation will always be 0, causing all samples to be filtered."
             )
-        if self.async_steps < 1:
-            raise ValueError("`async_steps` must be greater than 0. Fully synchronous training is not supported.")
+        # if self.async_steps < 1:
+        #     raise ValueError("`async_steps` must be greater than 0. Fully synchronous training is not supported.")
 
 
 def masked_mean(

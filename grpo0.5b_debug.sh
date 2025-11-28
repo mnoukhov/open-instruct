@@ -37,7 +37,7 @@ uv run --active open_instruct/grpo_fast.py \
     --num_unique_prompts_rollout $(( 32 * $num_mini_batches )) \
     --num_samples_per_prompt_rollout 8 \
     --num_mini_batches $num_mini_batches \
-    --total_episodes 65536 \
+    --total_episodes 2560 \
     --stop_strings "<|endoftext|>" \
     --model_name_or_path $model_name_or_path \
     --chat_template_name simple_think \
@@ -52,7 +52,7 @@ uv run --active open_instruct/grpo_fast.py \
     --beta 0.0 \
     --seed $seed \
     --save_freq 1000 \
-    --local_eval_every $(( 64 / $num_mini_batches )) \
+    --local_eval_every $(( 10 / $num_mini_batches )) \
     --vllm_gpu_memory_utilization 0.4 \
     --single_gpu_mode \
     --deepspeed_stage 2 \
