@@ -12,7 +12,7 @@ for split_var in split_int_mix_3; do
     exp_name="${exp_name}_${RANDOM}"
 
     uv run python mason.py \
-        --cluster ai2/augusta-google-1 \
+        --cluster ai2/augusta \
         --image "$BEAKER_IMAGE" \
         --pure_docker_mode \
         --workspace ai2/olmo-instruct \
@@ -42,7 +42,6 @@ for split_var in split_int_mix_3; do
         --dataset_mixer_list_splits "train" \
         --dataset_mixer_eval_list "hamishivi/omega-combined 8 allenai/IF_multi_constraints_upto5 8 saurabh5/rlvr_acecoder_filtered 8 hamishivi/tulu_3_rewritten_400k_string_f1_only_v2_nocode_all_filtered_qwen2_5_openthoughts2 4 hamishivi/virtuoussy_multi_subject_rlvr 4" \
         --dataset_mixer_eval_list_splits train \
-        --max_token_length 10240 \
         --max_prompt_token_length 2048 \
         --response_length 8192 \
         --pack_length 12384 \
