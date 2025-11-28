@@ -17,13 +17,13 @@ LOCAL_EVAL_SPLITS="test"
 EXP_NAME="grpo_0.5b"
 
 num_mini_batches=$1
-# tv_cliprange=null
-# --tv_cliprange $tv_cliprange \
+tv_cliprange=$2
 async_steps=0
 seed=42
 for seed in {0..2}; do
     uv run --active open_instruct/grpo_fast.py \
         --exp_name $EXP_NAME \
+        --tv_cliprange $tv_cliprange \
         --output_dir $SCRATCH/open_instruct/results/ \
         --dataset_mixer_list $dataset_list \
         --dataset_mixer_list_splits train \
@@ -53,7 +53,7 @@ for seed in {0..2}; do
         --seed $seed \
         --save_freq 1000 \
         --local_eval_every $(( 64 / $num_mini_batches )) \
-        --vllm_gpu_memory_utilization 0.45 \
+        --vllm_gpu_memory_utilization 0.4 \
         --single_gpu_mode \
         --deepspeed_stage 2 \
         --eval_temperature 0. \
