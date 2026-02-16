@@ -9,7 +9,7 @@ source mila.sh
 
 WANDB_ENTITY=mnoukhov
 WANDB_PROJECT=open-instruct
-VLLM_ALLOW_INSECURE_SERIALIZATION=1
+export VLLM_ALLOW_INSECURE_SERIALIZATION=1
 
 model_name_or_path="Qwen/Qwen2.5-0.5B"
 dataset_list="ai2-adapt-dev/rlvr_gsm8k_zs 1.0"

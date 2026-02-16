@@ -243,6 +243,10 @@ class Args:
     """the higher clip range. Sometimes we want this to be higher, see DAPO (https://arxiv.org/abs/2503.14476)"""
     tv_cliprange: float | None = None
     """tv cliprange"""
+    advantage_realignment: bool = False
+    """perform advantage realignment"""
+    cispo_style: bool = False
+    """use cispo clipping"""
     truncated_importance_sampling_ratio_cap: float = 0.0
     """The maximum cap for truncated importance sampling ratio (0 means disabled)"""
     inflight_updates: bool = False
@@ -1246,6 +1250,43 @@ class PolicyTrainerRayProcess(RayProcess):
                         else:
                             pg_loss_max = pg_losses
                             mask = None
+                        # Apply truncated importance sampling if enabled
+                        if args.truncated_importance_sampling_ratio_cap > 0 and mb_vllm_logprobs is not None:
+                            old_logprobs_mask = mb_old_logprobs != INVALID_LOGPROB
+                            vllm_logprobs_mask = mb_vllm_logprobs != INVALID_LOGPROB
+
+                            assert torch.all(old_logprobs_mask == mb_response_masks_bool), (
+                                f"Old logprobs mask should match response mask. "
+                                f"old_mask sum={old_logprobs_mask.sum()}, "
+                                f"response_mask sum={mb_response_masks_bool.sum()}"
+                            )
+                            assert torch.all(vllm_logprobs_mask == mb_response_masks_bool), (
+                                f"vLLM logprobs mask should match response mask. "
+                                f"vllm_mask sum={vllm_logprobs_mask.sum()}, "
+                                f"response_mask sum={mb_response_masks_bool.sum()}"
+                            )
+
+                            valid_mask = mb_response_masks_bool
+
+                            # Initialize importance ratio to 1.0 (no effect) for all positions
+                            tis_imp_ratio = torch.ones_like(mb_old_logprobs)
+
+                            if valid_mask.any():
+                                # Calculate logprob difference only for valid positions
+                                logprob_diff_is = mb_old_logprobs - mb_vllm_logprobs
+                                # Clamp to prevent numerical overflow in exp
+                                logprob_diff_is = torch.where(
+                                    valid_mask, logprob_diff_is.clamp(-10.0, 10.0), torch.zeros_like(logprob_diff_is)
+                                )
+                                # Compute importance ratio only for valid positions
+                                tis_imp_ratio = torch.where(valid_mask, torch.exp(logprob_diff_is), tis_imp_ratio)
+                                # Apply cap
+                                tis_imp_ratio = torch.clamp(
+                                    tis_imp_ratio, max=args.truncated_importance_sampling_ratio_cap
+                                )
+
+                            # Apply importance sampling to losses
+                            pg_loss_max = pg_loss_max * (1 - tis_imp_ratio)
                     else:
                         pg_losses = -mb_advantages[:, 1:] * ratio
                         pg_losses2 = -mb_advantages[:, 1:] * torch.clamp(

@@ -9,7 +9,10 @@ source mila.sh
 
 WANDB_ENTITY=mnoukhov
 WANDB_PROJECT=open-instruct
-VLLM_ALLOW_INSECURE_SERIALIZATION=1
+export WANDB_MODE=disabled
+export VLLM_ALLOW_INSECURE_SERIALIZATION=1
+export VLLM_DISABLE_COMPILE_CACHE=1
+export VLLM_USE_V1=1    
 
 model_name_or_path="Qwen/Qwen2.5-0.5B"
 dataset_list="ai2-adapt-dev/rlvr_gsm8k_zs 1.0"
@@ -22,6 +25,7 @@ tv_cliprange=$2
 async_steps=1
 seed=42
 # for seed in {0..2}; do
+
 uv run --active open_instruct/grpo_fast.py \
     --exp_name $EXP_NAME \
     --tv_cliprange $tv_cliprange \
@@ -53,7 +57,7 @@ uv run --active open_instruct/grpo_fast.py \
     --seed $seed \
     --save_freq 1000 \
     --local_eval_every $(( 64 / $num_mini_batches )) \
-    --vllm_gpu_memory_utilization 0.4 \
+    --vllm_gpu_memory_utilization 0.3 \
     --single_gpu_mode \
     --deepspeed_stage 2 \
     --eval_temperature 0. \
