@@ -1790,7 +1790,7 @@ def accumulate_inference_batches(
                 record_filtered_prompt(result, prompt_dataset_key)
                 logging.debug(f"[Data Preparation Thread] Filtered prompt total filtered {total_filtered_prompts}")
 
-            if not active_sampling or (sync_sampling and gave_up_prompt):
+            if not active_sampling or (sync_sampling and (gave_up_prompt or solved_prompt)):
                 num_prompts_sampled += 1
                 progress_bar.update(1)
                 if progress_callback is not None:
