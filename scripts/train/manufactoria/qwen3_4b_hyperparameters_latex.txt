@@ -1,0 +1,24 @@
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{Hyperparameter} & \textbf{Value} \\
+\hline
+KL beta & 0.01 \\
+Learning rate & $5 \times 10^{-7}$ \\
+Total Steps & 1500 \\
+Temperature & 1.0 \\
+Completions Per Prompt & 16 \\
+Prompts per Batch & 32 \\
+Advantage normalization & centered \\
+Async steps & 1 \\
+Response length & 12000 \\
+Clip higher & 0.28 \\
+Non-stop penalty & False \\
+Mask truncated completions & False \\
+\hline
+\end{tabular}
+\caption{Hyperparameters for Qwen3-4B-Instruct-2507 on Manufactoria}
+\label{tab:qwen3-4b-manufactoria-hparams}
+\end{table}

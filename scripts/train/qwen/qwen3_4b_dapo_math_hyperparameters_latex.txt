@@ -1,0 +1,24 @@
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{ll}
+\hline
+\textbf{Hyperparameter} & \textbf{Value} \\
+\hline
+KL beta & 0.0 \\
+Learning rate & $1 \times 10^{-6}$ \\
+Total Steps & 1000 \\
+Temperature & 1.0 \\
+Completions Per Prompt & 16 \\
+Prompts per Batch & 8 \\
+Advantage normalization & centered \\
+Async steps & 1 \\
+Response length & 8192 \\
+Clip higher & 0.272 \\
+Non-stop penalty & False \\
+Mask truncated completions & False \\
+\hline
+\end{tabular}
+\caption{Hyperparameters for Qwen3-4B-Base on DAPO Math}
+\label{tab:qwen3-4b-dapo-math-hparams}
+\end{table}
