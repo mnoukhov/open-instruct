@@ -1,0 +1,8 @@
+Group,Setting,Step,Easy,Medium,Hard,Total
+GRPO Baseline,"N=8, K=8",320,29.5,35.2,20.1,26.8
+GRPO Baseline,"N=4, K=16",320,28.7,33.3,18.4,25.3
+GRPO Baseline,"N=2, K=32",320,29.5,30.7,16.0,23.6
+NGU,NGU p=0.5,288*,29.5,31.3,23.0,27.0
+NGU,NGU p=0.75,256*,29.5,34.5,22.1,27.6
+NGU,NGU p=0.875,224*,28.7,30.0,15.6,23.0
+SDPO,SDPO**,,24.5,26.0,14.4,20.2

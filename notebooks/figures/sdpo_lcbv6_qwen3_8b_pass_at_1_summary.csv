@@ -1,0 +1,8 @@
+Group,Setting,Step,Stdio,Functional,Total
+Initial,initial_eval,0,28.5,16.8,24.1
+GRPO Baseline,"N=8, K=8",320,54.3,45.4,51.0
+GRPO Baseline,"N=4, K=16",320,51.2,46.4,49.4
+GRPO Baseline,"N=2, K=32",320,50.0,43.9,47.7
+NGU,NGU p=0.5,288*,53.0,48.0,51.1
+NGU,NGU p=0.75,256*,54.9,46.4,51.7
+NGU,NGU p=0.875,224*,49.7,42.9,47.1
