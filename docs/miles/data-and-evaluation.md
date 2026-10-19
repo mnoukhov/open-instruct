@@ -6,6 +6,13 @@ assistant solutions into training prompts. See [workflow](workflow.md) for paths
 
 ## NGU group and retry metrics
 
+NGU supports both barrier and mixed-policy refresh publication. Refresh uses the
+same single-turn TP1, router-metadata and TIS requirements as the baseline.
+Each retry is a fresh request; accepted attempts merge without rewriting their
+original token probabilities or policy spans. Staleness pruning uses each
+attempt's oldest sampled-token version, and budget trimming retains the
+chain-wide reward baseline. Engine-drain publication remains unsupported for NGU.
+
 Fully asynchronous rollouts log `rollout/groups/selected/*` before fitting the sample
 budget and `rollout/groups/training/*` after budget trimming and the sample filter.
 Each stage includes `size_mean`, `size_min`, `size_max`, `merged_fraction` (the

@@ -15,6 +15,7 @@ from miles.backends.core_utils.rollout.generation_admission import GenerationAdm
 from miles.backends.core_utils.rollout.refreshing_rollout import RefreshingRolloutFn
 from miles.backends.training_utils.loss_hub.corrections import vanilla_tis_function
 from miles.ray.rollout import train_data_conversion
+from miles.rollout.filter_hub.common_filters import FilterReason
 from miles.rollout.fully_async_data_buffer import DataBufferConstructorInput, DataBufferInput
 from miles.rollout.inference_rollout import inference_rollout_common
 from miles.utils.types import Sample, WeightVersionSpan, WeightVersionsPerCall
@@ -113,7 +114,14 @@ def test_repeated_refresh_and_empty_span_boundaries():
 def test_mixed_group_is_accepted_but_old_prefix_expires():
     async def scenario():
         unused = []
-        buffer = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), unused.append))
+        buffer = RefreshPolicyDataBuffer(
+            DataBufferConstructorInput(
+                args(),
+                lambda prompt_group, *, group, reason: unused.append(prompt_group)
+                if reason == FilterReason.stale
+                else None,
+            )
+        )
         mixed = entry()
         # Different siblings may have different publication boundaries.
         mixed.group[1] = sample(0, (1, 1))
@@ -138,7 +146,7 @@ def producer():
     p._refreshing = p._publication_paused = p._stopping = p._shutdown_complete = False
     p._refresh_started = None
     p._boundary_capacity = None
-    p._output = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), lambda group: None))
+    p._output = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), lambda prompt_group, **_: None))
     p._producer_resumed = asyncio.Event()
     p._producer_resumed.set()
     p._producer_idle = asyncio.Event()
@@ -268,7 +276,9 @@ def test_queue_discard_metrics_capture_generated_lengths_before_retry_reset():
     async def scenario():
         retried = []
 
-        def retry(group):
+        def retry(prompt_group, *, group, reason):
+            if reason != FilterReason.stale:
+                return
             retried.append(group)
             for value in group:
                 value.response_length = 0

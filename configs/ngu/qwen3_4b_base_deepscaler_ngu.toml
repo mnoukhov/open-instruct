@@ -106,7 +106,7 @@ wandb_group = "qwen3-4b-base-deepscaler_ngu_r01"
 
 [core]
 checkpoint_keep_last = 3
-# NGU on Core supports barrier publication only (refresh would mirror --inflight_updates).
+# Refresh also supports NGU; enable miles.use_miles_router for token-policy provenance.
 publication_mode = "barrier"
 router_aux_loss_weight = 0.0
 router_z_loss_weight = 0.0
