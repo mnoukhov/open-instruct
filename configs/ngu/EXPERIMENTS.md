@@ -81,6 +81,27 @@ Inventory checked on 2026-10-29. W&B project:
 [`ai2-llm/open_instruct_internal`](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal).
 Run states below distinguish useful partial learning from successful completion.
 
+### Hardware and publication matrix
+
+Do not combine these rows into one hardware-matched timing comparison. GPU models
+below come from the named attempts' downloaded W&B `wandb-metadata.json`; verify
+every resumed attempt when exporting a complete history.
+
+| Series | GPU model | Total GPUs | Trainers | Generators | Publication | Evidence |
+| --- | --- | ---: | ---: | ---: | --- | --- |
+| Original N=16/K=32 baseline | NVIDIA B300 SXM6 AC | 8 | 4 | 4 | Barrier | `2zy3r5wj` hardware; group configs |
+| Original N=16/K=8 NGU max 32 | NVIDIA B300 SXM6 AC | 8 | 4 | 4 | Barrier | `504ocdww` hardware; group configs |
+| October 19 N=16/K=32 baseline | NVIDIA B300 SXM6 AC | 8 | 2 | 6 | Refresh | `1alfosor` hardware; group configs |
+| October 19 N=16/K=8 NGU max 32 | NVIDIA B300 SXM6 AC | 8 | 2 | 6 | Refresh | `15g1vf6l` hardware; group configs |
+| New N=16/K=8 NGU max 32 | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | `runs/ngu-holmes-t1g3-20261029.toml`; image build in progress |
+| New N=16/K=32 baseline | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | `runs/baseline-k32-holmes-t1g3-20261029.toml`; authorized, image build in progress |
+
+The additional K=32 barrier metrics series uses eight GPUs split 2+6. Its actual
+GPU model has not been independently checked in this inventory. The failed
+October 27 four-GPU job used 1+3 and refresh but produced no training data.
+
+### Learning evidence
+
 | Arm / variant | Existing evidence | Use in the comparison |
 | --- | --- | --- |
 | Baseline K=8, N=16 | No matching plain baseline identified yet | Missing arm; needs a new four-GPU refresh run |
