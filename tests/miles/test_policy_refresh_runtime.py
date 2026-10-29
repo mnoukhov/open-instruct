@@ -143,7 +143,7 @@ def producer():
     p._refreshing = p._publication_paused = p._stopping = p._shutdown_complete = False
     p._refresh_started = None
     p._boundary_capacity = None
-    p._output = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), lambda group, **kwargs: None))
+    p._output = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), lambda prompt_group, **kwargs: None))
     p._producer_resumed = asyncio.Event()
     p._producer_resumed.set()
     p._producer_idle = asyncio.Event()
@@ -273,9 +273,11 @@ def test_queue_discard_metrics_capture_generated_lengths_before_retry_reset():
     async def scenario():
         retried = []
 
-        def retry(group):
-            retried.append(group)
-            for value in group:
+        def retry(prompt_group, *, group, reason):
+            if reason != "stale":
+                return
+            retried.append(prompt_group)
+            for value in prompt_group:
                 value.response_length = 0
                 value.weight_versions = []
 
@@ -311,7 +313,7 @@ def test_request_deadline_is_independent_of_drain_and_cancels_timeout(monkeypatc
         async def post(*args, **kwargs):
             try:
                 await asyncio.sleep(0.02)
-                return {"meta_info": {"finish_reason": {"type": "stop"}}}
+                return json.dumps({"meta_info": {"finish_reason": {"type": "stop"}}}).encode()
             finally:
                 finalized.append(True)
 
@@ -367,7 +369,7 @@ def test_transport_failure_logs_request_identity_without_resampling(monkeypatch,
         assert caught.value is failure
         assert len(calls) == 1
         _, payload, kwargs = calls[0]
-        assert kwargs == {"max_retries": 1, "headers": {"x-miles-request-id": payload["rid"]}}
+        assert kwargs == {"max_retries": 1, "headers": {"x-miles-request-id": payload["rid"]}, "return_bytes": True}
         assert value.rollout_log_probs == original_scores
         assert f"request={payload['rid']} group=0 sample=17" in caplog.text
         assert "delivery=unknown" in caplog.text
