@@ -113,7 +113,12 @@ def test_repeated_refresh_and_empty_span_boundaries():
 def test_mixed_group_is_accepted_but_old_prefix_expires():
     async def scenario():
         unused = []
-        buffer = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), unused.append))
+        buffer = RefreshPolicyDataBuffer(
+            DataBufferConstructorInput(
+                args(),
+                lambda prompt_group, **kwargs: unused.append(prompt_group) if kwargs["reason"] != "kept" else None,
+            )
+        )
         mixed = entry()
         # Different siblings may have different publication boundaries.
         mixed.group[1] = sample(0, (1, 1))
@@ -138,7 +143,7 @@ def producer():
     p._refreshing = p._publication_paused = p._stopping = p._shutdown_complete = False
     p._refresh_started = None
     p._boundary_capacity = None
-    p._output = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), lambda group: None))
+    p._output = RefreshPolicyDataBuffer(DataBufferConstructorInput(args(), lambda group, **kwargs: None))
     p._producer_resumed = asyncio.Event()
     p._producer_resumed.set()
     p._producer_idle = asyncio.Event()

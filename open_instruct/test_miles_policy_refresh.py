@@ -32,6 +32,17 @@ def test_refresh_is_explicit_and_compiles_into_core_config():
     assert CoreConfig().publication_mode == "barrier"
 
 
+def test_ngu_refresh_compiles_the_attempt_budget_with_token_provenance():
+    config = configured()
+    config = dataclasses.replace(
+        config, miles=config.miles | {"async_unused_samples_handler": "never_give_up", "ngu_max_budget": 4}
+    )
+    config.validate()
+    args = config.arguments()
+    assert "--ngu-max-budget" in args
+    assert '"publication_mode": "refresh"' in args[-1]
+
+
 @pytest.mark.parametrize(
     "change,match",
     [
