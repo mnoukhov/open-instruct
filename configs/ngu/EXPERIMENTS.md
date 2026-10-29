@@ -93,12 +93,22 @@ every resumed attempt when exporting a complete history.
 | Original N=16/K=8 NGU max 32 | NVIDIA B300 SXM6 AC | 8 | 4 | 4 | Barrier | `504ocdww` hardware; group configs |
 | October 19 N=16/K=32 baseline | NVIDIA B300 SXM6 AC | 8 | 2 | 6 | Refresh | `1alfosor` hardware; group configs |
 | October 19 N=16/K=8 NGU max 32 | NVIDIA B300 SXM6 AC | 8 | 2 | 6 | Refresh | `15g1vf6l` hardware; group configs |
-| New N=16/K=8 NGU max 32 | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | `runs/ngu-holmes-t1g3-20261029.toml`; image build in progress |
-| New N=16/K=32 baseline | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | `runs/baseline-k32-holmes-t1g3-20261029.toml`; authorized, image build in progress |
+| New N=16/K=8 NGU max 32 | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | [Beaker 01M64J5HXN9DXHF864S531HAT8](https://beaker.org/ex/01M64J5HXN9DXHF864S531HAT8); submitted, queued |
+| New N=16/K=32 baseline | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | [Beaker 01M64J5V5PA5G2CTWCJ2Y9NYRD](https://beaker.org/ex/01M64J5V5PA5G2CTWCJ2Y9NYRD); submitted, awaiting placement |
 
 The additional K=32 barrier metrics series uses eight GPUs split 2+6. Its actual
 GPU model has not been independently checked in this inventory. The failed
 October 27 four-GPU job used 1+3 and refresh but produced no training data.
+
+Both October 29 submissions use immutable image `01M64J2YXFNKB92M1WKZTG597N`,
+built on Hammond from Open Instruct `76ec0b7c492fcd692ea4e9a7ae0e72af675b3235`
+and MILES `cdac4bf18ff7a81137a33e06f8415f19ad914583`, with the current main
+binary base `01M5ZYQZVF7DDJ1VR619KRSS42`. The runtime's generated argument
+snapshot matches the launcher. Validation: 281 config/launch tests, 137 rollout
+runtime tests, and 27 refresh integration tests. CPU runtime tests disabled the
+optional Megatron import because the CPU build host has no CUDA driver; GPU
+startup/training is not yet verified. The rendered Holmes jobs have no explicit
+`LD_LIBRARY_PATH` override.
 
 ### Learning evidence
 
@@ -111,7 +121,7 @@ October 27 four-GPU job used 1+3 and refresh but produced no training data.
 | Baseline K=32, N=16, 2+6 GPUs, refresh | [Beaker 01M5AQZ17MQKNP51G3SVQAE8NT](https://beaker.org/ex/01M5AQZ17MQKNP51G3SVQAE8NT); [W&B 1alfosor](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/1alfosor); group `qwen3-4b-base-deepscaler_baseline_refresh_k32n16_t2g6_20261019` | 52 W&B attempts; usable partial learning, evaluations through step 700 (22.81% in that attempt's summary). Latest Beaker attempt failed during startup, before executing training |
 | NGU K=8, max 32, N=16, original, 4+4 GPUs, barrier | [Initial W&B ahhqdtrr](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/ahhqdtrr); [finished attempt 504ocdww](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/504ocdww); group `qwen3-4b-base-deepscaler_ngu_budget4_k8n16` | Two W&B attempts; completed through step 999, final logged AIME correctness 20.42%. Historical eight-GPU barrier reference |
 | NGU K=8, max 32, N=16, 2+6 GPUs, refresh | [Beaker 01M5AT1ZWBT5TGB8SP02RTGMXG](https://beaker.org/ex/01M5AT1ZWBT5TGB8SP02RTGMXG); [finished W&B 15g1vf6l](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/15g1vf6l); group `qwen3-4b-base-deepscaler_ngu_refresh_budget4_k8n16_t2g6_20261019` | 12 W&B attempts; Beaker completed successfully, evaluations through step 999 (19.48%). Closest existing NGU arm, but eight GPUs and older runtime |
-| NGU K=8, max 32, N=16, 1+3 GPUs, Holmes | [Failed attempt 01M5ZF84PHZFJP6Q6FP8K4FS50](https://beaker.org/ex/01M5ZF84PHZFJP6Q6FP8K4FS50) | CUDA Error 803 before training; no learning evidence. Replacement being prepared from the clean rebased NGU branch without the shared compatibility override |
+| NGU K=8, max 32, N=16, 1+3 GPUs, Holmes | [Failed attempt 01M5ZF84PHZFJP6Q6FP8K4FS50](https://beaker.org/ex/01M5ZF84PHZFJP6Q6FP8K4FS50) | CUDA Error 803 before training; no learning evidence. Replacement submitted October 29; see hardware matrix |
 
 The initial NGU refresh submission
 [01M5AQZ4X838QW92GEE0JN9TAG](https://beaker.org/ex/01M5AQZ4X838QW92GEE0JN9TAG)
@@ -133,10 +143,11 @@ live step-700 coverage above.
 
 ## Next experiments
 
-1. Finish and verify the four-GPU Holmes NGU K=8/max-32 relaunch.
-2. Run the three plain baselines K=8, 16 and 32 with the same four-GPU refresh
-   setup and source/runtime pins. These launches are planned, not yet authorized
-   by writing this document.
+1. Verify GPU startup and learning for the submitted four-GPU Holmes NGU
+   K=8/max-32 and baseline K=32 refresh pair.
+2. Run plain baselines K=8 and K=16 with the same four-GPU refresh setup and
+   source/runtime pins. These two launches are planned, not yet authorized by
+   writing this document.
 3. Export evaluation points, timestamps, generated-token counts and attempt
    lifetimes into one comparison dataset. Produce wall-time and GPU-hour plots.
 4. Add group-size diagnostics: trained sizes 8/16/24/32 and a separate max-32
