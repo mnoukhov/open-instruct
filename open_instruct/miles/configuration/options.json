@@ -118,7 +118,7 @@
   {"dest":"dynamic_sampling_filter_path","type":"str"},
   {"dest":"ngu_requeue_probability","type":"float"},
   {"dest":"ngu_max_budget","type":"int"},
-  {"default":1.0,"dest":"ngu_solved_reward","type":"float"},
+  {"dest":"ngu_solved_reward","type":"float"},
   {"choices":["group","sample"],"dest":"rollout_submission_granularity","type":"str"},
   {"const":true,"default":false,"dest":"partial_rollout","kind":"switch","nargs":0},
   {"const":true,"default":false,"dest":"mask_offpolicy_in_partial_rollout","kind":"switch","nargs":0},
