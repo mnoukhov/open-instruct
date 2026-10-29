@@ -1,6 +1,8 @@
 # NGU comparison recipes
 
 These opt-in Deepscaler recipes use Qwen3-4B-Base with the NGU runtime integration.
+See the [experiment plan and run inventory](EXPERIMENTS.md) for the fixed-K
+baselines, NGU comparison arm and evaluation-over-time protocol.
 Prepare the data on a host with dataset access:
 
 ```bash
