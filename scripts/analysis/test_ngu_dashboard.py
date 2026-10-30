@@ -1,5 +1,7 @@
 """Accounting checks for preempted and resumed experiment histories."""
 
+import json
+
 import pytest
 from scripts.analysis import ngu_dashboard as dashboard
 
@@ -46,3 +48,26 @@ def test_attempt_intervals_deduplicate_and_include_running_attempt():
     job = {"id": "job", "requests": {"gpuCount": 4}, "status": {"started": "1970-01-01T00:00:10Z"}}
     intervals = dashboard.intervals_from_tasks([{"jobs": [job, job]}], 100)
     assert intervals == [{"start": 10, "end": 100, "gpus": 4, "job": "job"}]
+
+
+def test_per_problem_rows_join_by_attempt_and_step_after_rollback():
+    rows = [
+        {"eval/step": 99, dashboard.METRIC: 0.5, "_timestamp": 100, "run": "old"},
+        {
+            "eval/step": 99,
+            "eval/per_example": json.dumps({"aime_2025": [{"correct": 1}]}),
+            "_timestamp": 99,
+            "run": "old",
+        },
+        {"eval/step": 99, dashboard.METRIC: 1, "_timestamp": 200, "run": "new"},
+        {
+            "eval/step": 99,
+            "eval/per_example": json.dumps({"aime_2025": [{"correct": 2}]}),
+            "_timestamp": 199,
+            "run": "new",
+        },
+    ]
+    points, issues = dashboard.evaluation_points(rows, [{"start": 0, "end": 300, "gpus": 4}], 0)
+    assert not issues
+    assert points[0]["run"] == "new"
+    assert points[0]["problems"] == [{"correct": 2}]

@@ -17,13 +17,14 @@
 <div class="layout"><section class="panel" aria-label="Accuracy chart"><div class="toolbar"><div><h2>Learning efficiency</h2><div class="note" id="axis-description"></div></div><div class="controls"><label>Compare by <select id="axis"><option value="gpu_hours">Active GPU-hours</option><option value="active_hours">Active job-hours</option><option value="wall_hours">Wall hours since submission</option><option value="step">Training step</option></select></label><label><input type="checkbox" id="best">Best so far</label></div></div><div class="chart-wrap" id="chart"></div><div class="legend" id="legend"></div><div id="selected-point" aria-live="polite">Select an evaluation point to open its W&B attempt.</div><div class="footnote">Points are measured evaluations. No extrapolation beyond the last result. Accuracy is mean correctness, not pass@32.</div></section>
 <aside class="panel"><h2>Comparison series</h2><div class="note">Keep hardware and publication mode visible.</div><div class="choices" id="choices"></div><div class="missing" id="missing">Loading comparison arms…</div><div class="sep"><details><summary>How compute is counted</summary><p>Active GPU-hours = the sum of each Beaker attempt’s started-to-ended container runtime × assigned GPUs. Includes initialization, evaluation, failed/repeated work and shutdown; excludes queueing and image pull before container start. This measures resource time, not GPU utilization or FLOPs.</p><p>Wall time starts at the first submission and includes scheduling gaps. Every evaluation keeps its real completion time. Repeated steps retain the latest timestamp across W&B attempts.</p><p>Older eight-GPU runs use different source/runtime versions. GPU-hours alone do not remove that confound. GPU type is the recorded cohort hardware, not a cross-hardware performance normalization.</p></details></div></aside></div>
 <section class="panel bottom"><div class="toolbar"><h2>Run ledger</h2><div class="note">Totals include compute spent after the last evaluation.</div></div><div class="table-wrap"><table><thead><tr><th>Experiment</th><th>Hardware / mode</th><th>Status</th><th class="num">Latest AIME</th><th class="num">Eval step</th><th class="num">GPU-h at eval</th><th class="num">Total GPU-h</th><th class="num">Preemptions</th></tr></thead><tbody id="ledger"></tbody></table></div></section>
+<section class="panel bottom"><div class="toolbar"><div><h2>Per-problem accuracy</h2><div class="note">Problems × evaluated checkpoints · each cell shows correct / trials</div></div><label class="note">Run <select id="heat-series"></select></label></div><div class="table-wrap" id="heatmap"></div><div class="note" id="heat-detail" aria-live="polite"></div></section>
 <div class="footnote">Read-only W&B + Beaker data · Live view refreshes every five minutes while open · Credentials stay in the local collector</div>
 </main><div id="tooltip" class="tooltip" hidden></div>
 <script>
 /*SNAPSHOT*/
 (()=>{
 const $=id=>document.getElementById(id), colors=['var(--blue)','var(--orange)','var(--purple)','var(--green)'];
-let data=null, enabled=new Set(), initialized=false, refreshing=false, snapshot=!!window.NGU_SNAPSHOT, polling=false, pollTimer=null;
+let data=null, enabled=new Set(), initialized=false, refreshing=false, snapshot=!!window.NGU_SNAPSHOT, polling=false, pollTimer=null, heatSeries='baseline-k16-4';
 const fmt=(v,n=1)=>Number.isFinite(v)?v.toLocaleString(undefined,{maximumFractionDigits:n,minimumFractionDigits:n}):'—';
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const axes={gpu_hours:['Active GPU-hours','All attempt runtime × assigned GPUs; repeated work included'],active_hours:['Active job-hours','Container runtime across attempts; queueing excluded'],wall_hours:['Wall hours since submission','Includes initial queue, restarts and subsequent scheduling gaps'],step:['Training step','Updates have different sample budgets across K values']};
@@ -51,6 +52,23 @@ function chart(){
  mark.addEventListener('pointermove',show);mark.addEventListener('focus',show);['pointerleave','blur'].forEach(e=>mark.addEventListener(e,()=>{$('tooltip').hidden=true}));
  const pick=()=>{$('selected-point').innerHTML=`${esc(r.label)} · step ${p.step} · ${fmt(p.accuracy,2)}% · <a target="_blank" rel="noopener" href="https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/${encodeURIComponent(p.run)}">Open W&B attempt ↗</a>`};mark.addEventListener('click',pick);mark.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick()}});});
 }
+function heatmap(){
+ if(!data)return;
+ const r=data.series.find(r=>r.id===heatSeries)||data.series[0];
+ $('heat-series').innerHTML=data.series.map(s=>`<option value="${s.id}" ${s.id===r.id?'selected':''}>${esc(s.label)}</option>`).join('');
+ const points=r.points.filter(p=>p.problems&&p.problems.length);
+ if(!points.length){$('heatmap').innerHTML='<div class="empty">No per-problem evaluations yet for this run.<br>Enabled for the new K=8 and K=16 baselines; historical aggregate scores cannot fill these cells.</div>';$('heat-detail').textContent='';return}
+ const problems=new Map();points.forEach(p=>p.problems.forEach(q=>problems.set(q.id,q)));
+ const ordered=[...problems.values()].sort((a,b)=>a.problem-b.problem);
+ let html='<table><thead><tr><th>Problem</th>'+points.map(p=>`<th class="num">Step ${p.step}<div class="note">${fmt(p.gpu_hours,1)} GPU-h</div></th>`).join('')+'</tr></thead><tbody>';
+ ordered.forEach(q=>{html+=`<tr><th title="Prompt SHA-256: ${esc(q.id)}">P${String(q.problem).padStart(2,'0')}</th>`;
+ points.forEach((p,i)=>{const v=p.problems.find(v=>v.id===q.id);if(!v){html+='<td class="num">—</td>';return}
+ const alpha=Math.round(v.accuracy*85), color=v.accuracy>=0.6?'var(--panel)':'var(--ink)';
+ html+=`<td class="num"><button type="button" class="heat-cell" data-problem="${q.id}" data-point="${i}" style="width:100%;border:0;font-variant-numeric:tabular-nums;background:color-mix(in srgb,var(--blue) ${alpha}%,var(--panel));color:${color}" title="P${q.problem}: ${fmt(v.accuracy*100,1)}% · ${v.correct}/${v.trials} · ${v.failed_trials} failed trials">${v.correct}/${v.trials}</button></td>`;});html+='</tr>';});
+ $('heatmap').innerHTML=html+'</tbody></table>';
+ $('heatmap').querySelectorAll('.heat-cell').forEach(cell=>cell.addEventListener('click',()=>{const p=points[Number(cell.dataset.point)],q=p.problems.find(q=>q.id===cell.dataset.problem);$('heat-detail').textContent=`P${q.problem} · step ${p.step}: ${fmt(q.accuracy*100,2)}% (${q.correct}/${q.trials}); ${q.failed_trials} failed trials counted incorrect. Stable ID ${q.id.slice(0,16)}…`;}));
+ $('heat-detail').textContent='Darker cells indicate higher accuracy. Missing cells are not zero accuracy.';
+}
 function render(){
  if(!data)return;
  if(!initialized){data.series.forEach(r=>{if(r.default)enabled.add(r.id)});initialized=true}
@@ -60,7 +78,7 @@ function render(){
  $('ledger').innerHTML=data.series.map(r=>{const p=r.points.at(-1);return `<tr><td><a href="${link(r)}" target="_blank" rel="noopener">${esc(r.label)} ↗</a><div class="note">${r.wandb_attempts} W&B attempts · ${r.points.length} evaluations</div></td><td>${r.trainers+r.generators} × ${esc(r.gpu)}<div class="note">${r.trainers}T / ${r.generators}G · ${esc(r.publication)}<br>Min runtime ${esc(r.min_runtime||'unknown')}</div></td><td>${esc(r.stale?'stale':r.state)}</td><td class="num">${p?fmt(p.accuracy,2)+'%':'—'}</td><td class="num">${p?p.step:'—'}</td><td class="num">${p?fmt(p.gpu_hours,2):'—'}</td><td class="num">${fmt(r.compute.gpu_hours,2)}</td><td class="num">${r.preemptions}</td></tr>`}).join('');
  $('stamp').textContent=(snapshot?'Snapshot · ':'Updated ')+new Date(data.updated*1000).toLocaleString();
  const issues=[...(data.errors||[]),...data.series.flatMap(r=>(r.issues||[]).map(s=>r.label+': '+s))];
- $('warnings').textContent=issues.join(' · ');chart();
+ $('warnings').textContent=issues.join(' · ');chart();heatmap();
 }
 async function update(force=false){
  if(polling)return;clearTimeout(pollTimer);polling=true;
@@ -71,6 +89,6 @@ async function update(force=false){
  }catch(e){$('warnings').textContent='Data connection unavailable. Showing the last successful refresh.'}finally{polling=false}
  if(!snapshot)pollTimer=setTimeout(()=>update(),refreshing||!data?3000:30000);
 }
- $('refresh').addEventListener('click',()=>update(true));window.addEventListener('resize',chart);$('axis').addEventListener('change',chart);$('best').addEventListener('change',chart);update();
+ $('heat-series').addEventListener('change',()=>{heatSeries=$('heat-series').value;heatmap()});$('refresh').addEventListener('click',()=>update(true));window.addEventListener('resize',chart);$('axis').addEventListener('change',chart);$('best').addEventListener('change',chart);update();
 })();
 </script></body></html>

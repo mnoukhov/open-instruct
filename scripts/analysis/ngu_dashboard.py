@@ -86,7 +86,13 @@ def compute_at(intervals, at):
 
 def evaluation_points(rows, intervals, submitted):
     retained = {}
+    per_problem = {}
     issues = []
+    for row in rows:
+        if "eval/per_example" in row:
+            key = (row["run"], int(row["eval/step"]))
+            if key not in per_problem or row["_timestamp"] > per_problem[key]["_timestamp"]:
+                per_problem[key] = row
     for row in rows:
         if not all(key in row for key in ("eval/step", METRIC, "_timestamp")):
             continue
@@ -103,6 +109,13 @@ def evaluation_points(rows, intervals, submitted):
         if not intervals or at < min(i["start"] for i in intervals) - 60:
             issues.append(f"Evaluation step {row['eval/step']} predates mapped Beaker runtime")
             continue
+        detail = per_problem.get((row["run"], int(row["eval/step"])))
+        problems = []
+        if detail and abs(detail["_timestamp"] - at) < 60:
+            try:
+                problems = json.loads(detail["eval/per_example"]).get("aime_2025", [])
+            except (ValueError, TypeError, AttributeError):
+                issues.append(f"Unreadable per-example eval at step {row['eval/step']}")
         points.append(
             {
                 "step": int(row["eval/step"]),
@@ -110,6 +123,7 @@ def evaluation_points(rows, intervals, submitted):
                 "timestamp": at,
                 "wall_hours": (at - submitted) / 3600,
                 "run": row["run"],
+                "problems": problems,
                 **compute_at(intervals, at),
             }
         )
@@ -136,6 +150,10 @@ def run_evaluations(project, run, cache, force):
     rows = [
         dict(row, run=run.id) for row in run.scan_history(keys=["eval/step", METRIC, "_timestamp"], page_size=1000)
     ]
+    rows.extend(
+        dict(row, run=run.id)
+        for row in run.scan_history(keys=["eval/step", "eval/per_example", "_timestamp"], page_size=1000)
+    )
     path.write_text(json.dumps(rows))
     return rows
 
