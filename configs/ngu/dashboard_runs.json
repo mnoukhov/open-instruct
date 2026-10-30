@@ -1,0 +1,9 @@
+{
+  "project": "ai2-llm/open_instruct_internal",
+  "runs": [
+    {"id":"baseline-4","label":"Baseline K=32","cohort":"4 GPU · refresh","group":"qwen3-4b-base-deepscaler_baseline_refresh_k32n16_t1g3_holmes_20261029","experiments":["01M64J5V5PA5G2CTWCJ2Y9NYRD"],"n":16,"k":32,"max_samples":32,"ngu":false,"trainers":1,"generators":3,"publication":"refresh","gpu":"B300","default":true},
+    {"id":"ngu-4","label":"NGU K=8 → 32","cohort":"4 GPU · refresh","group":"qwen3-4b-base-deepscaler_ngu_refresh_budget4_k8n16_t1g3_holmes_20261029","experiments":["01M64J5HXN9DXHF864S531HAT8"],"n":16,"k":8,"max_samples":32,"ngu":true,"trainers":1,"generators":3,"publication":"refresh","gpu":"B300","default":true},
+    {"id":"baseline-8","label":"Baseline K=32 · historical","cohort":"8 GPU · refresh","group":"qwen3-4b-base-deepscaler_baseline_refresh_k32n16_t2g6_20261019","experiments":["01M5AQZ17MQKNP51G3SVQAE8NT"],"n":16,"k":32,"max_samples":32,"ngu":false,"trainers":2,"generators":6,"publication":"refresh","gpu":"B300","default":false},
+    {"id":"ngu-8","label":"NGU K=8 → 32 · historical","cohort":"8 GPU · refresh","group":"qwen3-4b-base-deepscaler_ngu_refresh_budget4_k8n16_t2g6_20261019","experiments":["01M5AQZ4X838QW92GEE0JN9TAG","01M5AT1ZWBT5TGB8SP02RTGMXG"],"n":16,"k":8,"max_samples":32,"ngu":true,"trainers":2,"generators":6,"publication":"refresh","gpu":"B300","default":false}
+  ]
+}
