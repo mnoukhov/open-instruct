@@ -95,6 +95,8 @@ every resumed attempt when exporting a complete history.
 | October 19 N=16/K=8 NGU max 32 | NVIDIA B300 SXM6 AC | 8 | 2 | 6 | Refresh | `15g1vf6l` hardware; group configs |
 | New N=16/K=8 NGU max 32 | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | [Beaker 01M64J5HXN9DXHF864S531HAT8](https://beaker.org/ex/01M64J5HXN9DXHF864S531HAT8); submitted, queued |
 | New N=16/K=32 baseline | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | [Beaker 01M64J5V5PA5G2CTWCJ2Y9NYRD](https://beaker.org/ex/01M64J5V5PA5G2CTWCJ2Y9NYRD); submitted, awaiting placement |
+| October 30 N=16/K=16 baseline | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | [Beaker](https://beaker.org/ex/01M67118H0CPEQQHV5MFAWDM7J); 3h minimum runtime |
+| October 30 N=16/K=8 baseline | Holmes requested; actual model pending placement | 4 | 1 | 3 | Refresh | [Beaker](https://beaker.org/ex/01M6711C786FRCZMRM65JJHH8N); 3h minimum runtime |
 
 The additional K=32 barrier metrics series uses eight GPUs split 2+6. Its actual
 GPU model has not been independently checked in this inventory. The failed
@@ -114,8 +116,8 @@ startup/training is not yet verified. The rendered Holmes jobs have no explicit
 
 | Arm / variant | Existing evidence | Use in the comparison |
 | --- | --- | --- |
-| Baseline K=8, N=16 | No matching plain baseline identified yet | Missing arm; needs a new four-GPU refresh run |
-| Baseline K=16, N=16 | No matching plain baseline identified | Missing arm. The earlier `baseline_r01` and `deepscaler-miles_*` plain K=16 runs used **N=8**, not N=16; K=16 NGU runs are also a different arm |
+| Baseline K=8, N=16 | [Beaker 01M6711C786FRCZMRM65JJHH8N](https://beaker.org/ex/01M6711C786FRCZMRM65JJHH8N); group `qwen3-4b-base-deepscaler_baseline_refresh_k8n16_t1g3_holmes_20261030` | Submitted October 30; four Holmes GPUs, 1 trainer + 3 generators, refresh, minimum runtime 3h; awaiting placement |
+| Baseline K=16, N=16 | [Beaker 01M67118H0CPEQQHV5MFAWDM7J](https://beaker.org/ex/01M67118H0CPEQQHV5MFAWDM7J); group `qwen3-4b-base-deepscaler_baseline_refresh_k16n16_t1g3_holmes_20261030` | Submitted October 30; four Holmes GPUs, 1 trainer + 3 generators, refresh, minimum runtime 3h; awaiting placement. Earlier plain K=16 runs used N=8 and are different arms |
 | Baseline K=32, N=16, original, 4+4 GPUs, barrier | [Initial W&B 2zy3r5wj](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/2zy3r5wj); [finished attempt p0fd6l05](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/p0fd6l05); group `qwen3-4b-base-deepscaler_baseline_k32n16` | Four W&B attempts; completed through step 999, final logged AIME correctness 21.35%. Historical eight-GPU barrier reference |
 | Baseline K=32, N=16, 2+6 GPUs, barrier | [Beaker 01M50BF6EZWDPEGFCENVXVC53X](https://beaker.org/ex/01M50BF6EZWDPEGFCENVXVC53X); group `qwen3-4b-base-deepscaler_baseline_k32n16_t2g6_metrics` | Historical fixed-K baseline; barrier and GPU allocation differ from the new series |
 | Baseline K=32, N=16, 2+6 GPUs, refresh | [Beaker 01M5AQZ17MQKNP51G3SVQAE8NT](https://beaker.org/ex/01M5AQZ17MQKNP51G3SVQAE8NT); [W&B 1alfosor](https://forge.coreweave.com/wandb/ai2-llm/open_instruct_internal/runs/1alfosor); group `qwen3-4b-base-deepscaler_baseline_refresh_k32n16_t2g6_20261019` | 52 W&B attempts; usable partial learning, evaluations through step 700 (22.81% in that attempt's summary). Latest Beaker attempt failed during startup, before executing training |
@@ -145,9 +147,12 @@ live step-700 coverage above.
 
 1. Verify GPU startup and learning for the submitted four-GPU Holmes NGU
    K=8/max-32 and baseline K=32 refresh pair.
-2. Run plain baselines K=8 and K=16 with the same four-GPU refresh setup and
-   source/runtime pins. These two launches are planned, not yet authorized by
-   writing this document.
+2. Verify the October 30 plain K=8 and K=16 baselines once scheduled. They reuse
+   image `01M64J2YXFNKB92M1WKZTG597N`, N=16, and the 1+3 refresh setup, with
+   sample budgets 128 and 256 respectively. Both checkpoint every 25, keep three,
+   and request a 3h minimum runtime with auto-resume. The October 29 pair still
+   requests 0s minimum: this scheduling difference affects wall time and lost
+   work, so keep it visible when comparing curves.
 3. Export evaluation points, timestamps, generated-token counts and attempt
    lifetimes into one comparison dataset. Produce wall-time and GPU-hour plots.
 4. Add group-size diagnostics: trained sizes 8/16/24/32 and a separate max-32

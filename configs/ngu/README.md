@@ -44,8 +44,8 @@ setup and work lost to rollback, but exclude queue time and image pull before
 container start; they do not measure GPU utilization or FLOPs. Repeated eval
 steps retain the latest timestamp across all W&B attempts in the run group.
 
-Run definitions live in [dashboard_runs.json](dashboard_runs.json). Add the K=8
-and K=16 baseline groups and their Beaker experiments when launched. No credentials
+Run definitions live in [dashboard_runs.json](dashboard_runs.json), including the
+October 30 K=8 and K=16 baseline submissions with 3h minimum runtime. No credentials
 are written into the page. Cached evaluation data is stored under
 `~/.cache/open-instruct/ngu-dashboard/`. Source failures keep the last successful
 series with an explicit stale/error indicator. Stop the server with Ctrl-C.
