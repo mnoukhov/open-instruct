@@ -45,7 +45,8 @@
       "cohort": "4 GPU \u00b7 refresh \u00b7 3h minimum",
       "group": "qwen3-4b-base-deepscaler_baseline_refresh_k16n16_t1g3_holmes_20261030",
       "experiments": [
-        "01M67118H0CPEQQHV5MFAWDM7J"
+        "01M67118H0CPEQQHV5MFAWDM7J",
+        "01M675VADKAZVP1PYBRKEQP3SH"
       ],
       "n": 16,
       "k": 16,
@@ -56,7 +57,8 @@
       "publication": "refresh",
       "gpu": "B300",
       "default": true,
-      "min_runtime": "3h"
+      "min_runtime": "3h",
+      "per_example_logging": true
     },
     {
       "id": "baseline-k8-4",
@@ -64,7 +66,8 @@
       "cohort": "4 GPU \u00b7 refresh \u00b7 3h minimum",
       "group": "qwen3-4b-base-deepscaler_baseline_refresh_k8n16_t1g3_holmes_20261030",
       "experiments": [
-        "01M6711C786FRCZMRM65JJHH8N"
+        "01M6711C786FRCZMRM65JJHH8N",
+        "01M675WZSY9KPHJT16S871BHE2"
       ],
       "n": 16,
       "k": 8,
@@ -75,7 +78,8 @@
       "publication": "refresh",
       "gpu": "B300",
       "default": true,
-      "min_runtime": "3h"
+      "min_runtime": "3h",
+      "per_example_logging": true
     },
     {
       "id": "baseline-8",
