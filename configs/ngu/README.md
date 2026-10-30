@@ -55,3 +55,25 @@ For an offline, self-contained snapshot:
 ```bash
 uv run --no-sync python scripts/analysis/ngu_dashboard.py --once --export /path/to/aime-compute.html
 ```
+
+### Per-problem AIME accuracy
+
+The K=8 and K=16 baselines opt into this MILES callback:
+
+```toml
+[miles]
+custom_eval_rollout_log_function_path = "open_instruct.miles.rollout.eval_logging.log_per_example"
+```
+
+Each evaluation logs correct/trials/accuracy for every AIME problem, plus compact
+`eval/per_example` JSON for the dashboard. It also appends to
+`<run root>/eval_per_example/attempt-<id>.jsonl`. No full responses or token arrays
+are captured. Native aggregate metrics and metric-checker results are preserved.
+Missing rewards count as incorrect, matching native aggregate evaluation.
+
+The dashboard's per-problem heatmap shows correct/trials for each evaluated
+checkpoint. P01, P02, etc. refer to the prepared eval dataset's row order, rather
+than official exam numbering. Prompt SHA-256 identifiers provide stable matching
+across attempts. Heatmap records are joined to the retained eval by attempt and
+step, so checkpoint rollbacks do not mix old and new per-problem results. Older
+runs without the callback display an explicit no-data state.
