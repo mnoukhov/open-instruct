@@ -173,3 +173,19 @@ live step-700 coverage above.
    failed-chain category. Training sizes follow pruning/trimming; producer
    failure counts use observation windows and should not be equated with unique
    trained prompts.
+
+## November 2 NGU repeat
+
+Fresh Qwen3-4B-Base / Deepscaler run: [Beaker](https://beaker.org/ex/01M6DD9AJC48CYAA8Y65X9W6EB).
+N=16, K=8, `ngu_max_budget=4` (maximum 32), `never_give_up`, refresh,
+four Holmes GPUs requested, split 1 trainer / 3 generators. High priority,
+3h minimum runtime, auto-resume, 72h timeout. Target 1,000 collections;
+checkpoint every 25 and retain three. Seed 1 matches the earlier run; this is
+a repeat under the same seed, not an independent seed replicate.
+
+Uses immutable image `01M675TAE31VK6VCFBYVH069J5` with per-problem AIME
+logging (32 draws per problem, startup and every 100 collections). The W&B
+group is `qwen3-4b-base-deepscaler_ngu_refresh_budget4_k8n16_t1g3_holmes_20261102`,
+with a fresh output directory ending `ngu-refresh-budget4-k8n16-t1g3-holmes-20261102`.
+No previous checkpoint is loaded. Configuration validation and rendered resource
+checks passed; submission is not evidence of GPU startup or learning.

@@ -82,6 +82,26 @@
       "per_example_logging": true
     },
     {
+      "id": "ngu-4-20261102",
+      "label": "NGU K=8 \u2192 32 \u00b7 Nov 2",
+      "cohort": "4 GPU \u00b7 refresh \u00b7 3h minimum",
+      "group": "qwen3-4b-base-deepscaler_ngu_refresh_budget4_k8n16_t1g3_holmes_20261102",
+      "experiments": [
+        "01M6DD9AJC48CYAA8Y65X9W6EB"
+      ],
+      "n": 16,
+      "k": 8,
+      "max_samples": 32,
+      "ngu": true,
+      "trainers": 1,
+      "generators": 3,
+      "publication": "refresh",
+      "gpu": "B300",
+      "default": true,
+      "min_runtime": "3h",
+      "per_example_logging": true
+    },
+    {
       "id": "baseline-8",
       "label": "Baseline K=32 \u00b7 historical",
       "cohort": "8 GPU \u00b7 refresh",
