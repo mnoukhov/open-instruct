@@ -189,3 +189,32 @@ group is `qwen3-4b-base-deepscaler_ngu_refresh_budget4_k8n16_t1g3_holmes_2026110
 with a fresh output directory ending `ngu-refresh-budget4-k8n16-t1g3-holmes-20261102`.
 No previous checkpoint is loaded. Configuration validation and rendered resource
 checks passed; submission is not evidence of GPU startup or learning.
+
+## November 3 continuations to 1,500 steps
+
+- Baseline K=8/N=16: [Beaker](https://beaker.org/ex/01M6HERGYCG8DJZG7HQNTV37VV), resumes the October 30 native checkpoint with 975 completed steps (rollout974), targeting1500 (525 more updates).
+- NGU K=8/max32/N=16: [Beaker](https://beaker.org/ex/01M6HERVX9AQ1MBQNXY9CSMEQJ), resumes the November 2 native checkpoint with1000 completed steps (rollout999), targeting1500 (500 more updates).
+
+Both source checkpoints have completion markers and verified cursor checksums.
+The continuations use fresh output directories and explicit `miles.load` paths,
+restoring native model/optimizer/scheduler/RNG/policy-clock and dataset state.
+Their existing W&B groups are retained, so later timestamped updates replace
+checkpoint rollback duplicates in the dashboard. The original outputs are untouched.
+
+User requested checkpoint interval50 for both; retain latest3. All other settings
+remain unchanged: image `01M675TAE31VK6VCFBYVH069J5`, four Holmes GPUs per run,
+1 trainer / 3 generators, refresh, high priority, 3h minimum, auto-resume,72h timeout,
+AIME every100 with32 samples/problem and per-problem logging. Config validation
+and rendered resource checks passed. Submission/startup is separate from verified
+resumption and optimizer progress.
+
+Persistent monitoring runs in Hammond session `01M6DDCN3587ZFS04WXTM70HP6`,
+tmux window `beaker:ngu-1500-monitor`, directory
+`/weka/oe-adapt-default/michaeln/codex-control/ngu-1500-monitor-20261103`.
+It has a separate checkout/branch, serialized Codex inspection/recovery passes,
+a180-second delay between passes, state.json, latest.md and ledger.md. It may
+recover infrastructure failures with the approved immutable image/config and latest
+checkpoint, but must not change the objective or silently restart from zero.
+Baseline's prior late-training filtering stall requires explicit monitoring.
+The monitor survives laptop/SSH disconnection; it depends on the CPU session,
+network access and Codex authentication/capacity.
