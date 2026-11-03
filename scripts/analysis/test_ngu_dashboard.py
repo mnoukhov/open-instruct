@@ -12,6 +12,25 @@ def test_compute_counts_abandoned_work_and_clips_at_evaluation():
     assert dashboard.compute_at(intervals, -1) == {"gpu_hours": 0, "active_hours": 0}
 
 
+def test_retained_compute_removes_overwritten_updates_and_abandoned_tail():
+    intervals = [{"start": 0, "end": 100, "gpus": 4}, {"start": 200, "end": 300, "gpus": 4}]
+    rows = [
+        {"run": "old", "train/step": 0, "_timestamp": 10},
+        {"run": "old", "train/step": 1, "_timestamp": 30},
+        {"run": "old", "train/step": 2, "_timestamp": 60},
+        {"run": "new", "train/step": 1, "_timestamp": 220},
+        {"run": "new", "train/step": 2, "_timestamp": 250},
+    ]
+    evaluation = {"run": "new", "eval/step": 2, "_timestamp": 270}
+    result = dashboard.retained_compute_at(rows, intervals, evaluation)
+    # Old step 0 (10s), new startup/steps (50s), final evaluation (20s).
+    assert result["retained_gpu_hours"] == pytest.approx(80 * 4 / 3600)
+    assert result["retained_active_hours"] == pytest.approx(80 / 3600)
+    # An earlier evaluation must not depend on future resume timing.
+    early = {"run": "old", "eval/step": 1, "_timestamp": 40}
+    assert dashboard.retained_compute_at(rows, intervals, early)["retained_gpu_hours"] == pytest.approx(40 * 4 / 3600)
+
+
 def test_latest_step_survives_rollback_but_compute_clock_never_resets():
     intervals = [{"start": 0, "end": 3600, "gpus": 4}]
     rows = [

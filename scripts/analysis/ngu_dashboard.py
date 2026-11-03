@@ -84,6 +84,57 @@ def compute_at(intervals, at):
     }
 
 
+def retained_compute_at(rows, intervals, evaluation):
+    """Keep the newest execution of each update before this evaluation.
+
+    Each update owns elapsed container time since its predecessor, including
+    generation and trainer waiting. Restart startup belongs to the first update.
+    Discard overwritten update intervals and abandoned attempt tails; retain the
+    current attempt's final evaluation time. This is timestamp-based accounting,
+    not a measurement of GPU utilization.
+    """
+    at = evaluation["_timestamp"]
+    attempts = {}
+    for row in rows:
+        if "train/step" in row:
+            attempts.setdefault(row["run"], []).append(row)
+    retained = {}
+    current_last = None
+    current_start = None
+    for run, updates in attempts.items():
+        updates = sorted(updates, key=lambda r: r["_timestamp"])
+        first = updates[0]["_timestamp"]
+        candidates = [i for i in intervals if i["start"] <= first <= i["end"] + 60]
+        if not candidates:
+            raise ValueError(f"Training attempt {run} has no mapped Beaker runtime")
+        start = min(i["start"] for i in candidates)
+        if run == evaluation["run"]:
+            current_start = start
+        previous = start
+        for row in updates:
+            end = row["_timestamp"]
+            if end <= at and int(row["train/step"]) <= int(evaluation["eval/step"]):
+                step = int(row["train/step"])
+                if step not in retained or end > retained[step][1]:
+                    retained[step] = (previous, end)
+                if run == evaluation["run"]:
+                    current_last = end
+            previous = end
+    if current_start is None:
+        # Startup evaluation can finish before this attempt has trained a step.
+        candidates = [i for i in intervals if i["start"] <= at <= i["end"] + 60]
+        if not candidates:
+            raise ValueError("Evaluation has no mapped Beaker runtime")
+        current_start = min(i["start"] for i in candidates)
+    spans = list(retained.values()) + [(current_last if current_last is not None else current_start, at)]
+    result = {"gpu_hours": 0.0, "active_hours": 0.0}
+    for start, end in spans:
+        before, after = compute_at(intervals, start), compute_at(intervals, end)
+        for key in result:
+            result[key] += after[key] - before[key]
+    return {f"retained_{key}": value for key, value in result.items()}
+
+
 def evaluation_points(rows, intervals, submitted):
     retained = {}
     per_problem = {}
@@ -125,6 +176,7 @@ def evaluation_points(rows, intervals, submitted):
                 "run": row["run"],
                 "problems": problems,
                 **compute_at(intervals, at),
+                **retained_compute_at(rows, intervals, row),
             }
         )
     return points, sorted(set(issues))
@@ -142,7 +194,7 @@ def beaker_tasks(experiment):
 
 
 def run_evaluations(project, run, cache, force):
-    path = cache / f"{run.id}.json"
+    path = cache / f"{run.id}-with-training-v1.json"
     # Ended attempts can receive delayed uploads. Re-read hourly, and on force.
     ttl = 240 if run.state == "running" else 3600
     if not force and path.exists() and time.time() - path.stat().st_mtime < ttl:
@@ -154,6 +206,7 @@ def run_evaluations(project, run, cache, force):
         dict(row, run=run.id)
         for row in run.scan_history(keys=["eval/step", "eval/per_example", "_timestamp"], page_size=1000)
     )
+    rows.extend(dict(row, run=run.id) for row in run.scan_history(keys=["train/step", "_timestamp"], page_size=1000))
     path.write_text(json.dumps(rows))
     return rows
 
