@@ -2,6 +2,50 @@
   "project": "ai2-llm/open_instruct_internal",
   "runs": [
     {
+      "id": "ngu-k8-20261104",
+      "label": "NGU K=8 \u2192 32 \u00b7 Nov 4",
+      "cohort": "4 GPU \u00b7 refresh \u00b7 3h minimum",
+      "group": "qwen3-4b-base-deepscaler_ngu_refresh_k8n16_t1g3_holmes_20261104_s1300",
+      "experiments": [
+        "01M6KSQJM20FEJ9W6FH2M1RVMQ"
+      ],
+      "n": 16,
+      "k": 8,
+      "max_samples": 32,
+      "ngu": true,
+      "trainers": 1,
+      "generators": 3,
+      "publication": "refresh",
+      "gpu": "B300",
+      "default": true,
+      "min_runtime": "3h",
+      "per_example_logging": true,
+      "target_steps": 1300,
+      "checkpoint_interval": 50
+    },
+    {
+      "id": "baseline-k8-20261104",
+      "label": "Baseline K=8 \u00b7 Nov 4",
+      "cohort": "4 GPU \u00b7 refresh \u00b7 3h minimum",
+      "group": "qwen3-4b-base-deepscaler_baseline_refresh_k8n16_t1g3_holmes_20261104_s1400",
+      "experiments": [
+        "01M6KSPZ43T3MMTB4N9MZAMFR3"
+      ],
+      "n": 16,
+      "k": 8,
+      "max_samples": 8,
+      "ngu": false,
+      "trainers": 1,
+      "generators": 3,
+      "publication": "refresh",
+      "gpu": "B300",
+      "default": true,
+      "min_runtime": "3h",
+      "per_example_logging": true,
+      "target_steps": 1400,
+      "checkpoint_interval": 50
+    },
+    {
       "id": "baseline-4",
       "label": "Baseline K=32",
       "cohort": "4 GPU \u00b7 refresh",
@@ -43,7 +87,7 @@
     },
     {
       "id": "baseline-k8-4",
-      "label": "Baseline K=8",
+      "label": "Baseline K=8 \u00b7 Oct 30",
       "cohort": "4 GPU \u00b7 refresh \u00b7 3h minimum",
       "group": "qwen3-4b-base-deepscaler_baseline_refresh_k8n16_t1g3_holmes_20261030",
       "experiments": [
@@ -59,30 +103,7 @@
       "generators": 3,
       "publication": "refresh",
       "gpu": "B300",
-      "default": true,
-      "min_runtime": "3h",
-      "per_example_logging": true,
-      "target_steps": 1500,
-      "checkpoint_interval": 50
-    },
-    {
-      "id": "ngu-4-20261102",
-      "label": "NGU K=8 \u2192 32",
-      "cohort": "4 GPU \u00b7 refresh \u00b7 3h minimum",
-      "group": "qwen3-4b-base-deepscaler_ngu_refresh_budget4_k8n16_t1g3_holmes_20261102",
-      "experiments": [
-        "01M6DD9AJC48CYAA8Y65X9W6EB",
-        "01M6HERVX9AQ1MBQNXY9CSMEQJ"
-      ],
-      "n": 16,
-      "k": 8,
-      "max_samples": 32,
-      "ngu": true,
-      "trainers": 1,
-      "generators": 3,
-      "publication": "refresh",
-      "gpu": "B300",
-      "default": true,
+      "default": false,
       "min_runtime": "3h",
       "per_example_logging": true,
       "target_steps": 1500,

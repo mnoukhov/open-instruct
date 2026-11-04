@@ -218,3 +218,43 @@ checkpoint, but must not change the objective or silently restart from zero.
 Baseline's prior late-training filtering stall requires explicit monitoring.
 The monitor survives laptop/SSH disconnection; it depends on the CPU session,
 network access and Codex authentication/capacity.
+
+## November 4 fresh runs
+
+The earlier comparison jobs were all terminal when inspected; no active comparison
+job needed cancellation. These runs start fresh from Qwen3-4B-Base (no load path),
+with separate output roots and W&B groups. Seed1 is preserved.
+
+| Arm | Target steps | Experiment | W&B group |
+|---|---:|---|---|
+| Baseline N16/K8 | 1400 | [Beaker](https://beaker.org/ex/01M6KSPZ43T3MMTB4N9MZAMFR3) | `qwen3-4b-base-deepscaler_baseline_refresh_k8n16_t1g3_holmes_20261104_s1400` |
+| NGU N16/K8/max32 | 1300 | [Beaker](https://beaker.org/ex/01M6KSQJM20FEJ9W6FH2M1RVMQ) | `qwen3-4b-base-deepscaler_ngu_refresh_k8n16_t1g3_holmes_20261104_s1300` |
+
+Both use image `01M675TAE31VK6VCFBYVH069J5`, four Holmes GPUs per experiment,
+1 trainer/3 generators, refresh, high priority, 3h minimum runtime, auto-resume,
+72h timeout, checkpoint50/keep3, and per-problem AIME logging with32 draws, startup
+and every100 steps. Original Deepscaler10k data, LR1e-6 and all other optimizer/
+sampling settings remain unchanged. NGU max budget remains4. Rendered specs and
+configuration validation passed; submission is separate from startup/learning.
+Initial job events show budget `ai2/oe-other` at237/237 allocated Holmes slots,
+so both are queued, not failed. No alternate cluster/budget was substituted.
+
+Quiet monitoring: `/weka/oe-adapt-default/michaeln/codex-control/ngu-fresh-20261104`,
+exclusive checkout `ngu-fresh-repo-20261104`, tmux `beaker:ngu-fresh-quiet` in
+Hammond session `01M6DDCN3587ZFS04WXTM70HP6`. Plain Python checks every180s,
+a watchdog restarts checker crashes, and Codex is invoked only for startup/
+terminal verification or incidents. The registry is state.json; quiet.json,
+quiet-heartbeat.json, dashboard.md and inspections.jsonl persist observations.
+The monitor may recover confirmed infrastructure failures with the same image,
+resources/objective and latest own checkpoint; no duplicate active jobs or reset
+to zero after checkpointing. Incidents have persistent deduplication.
+
+The local `codex-ngu-fresh-incidents.service` checks remote monitor/watchdog health
+and relays only confirmed errors with an action/decision to this Codex chat.
+Source/tests: `/home/mnoukhov/.codex/monitors/ngu-fresh-20261104`. Nine focused
+tests cover latest replicas, optimizer-event parsing, preemption classification,
+error recovery triggers, relay deduplication and simulated watchdog restart.
+Delivery uses the existing Codex queue mechanism; no synthetic notification was
+sent to this research chat. Notifications require the desktop online; remote
+monitoring/recovery survives desktop disconnection, but checker/watchdog share
+Hammond failure domain. No stronger always-on off-host alert coverage is claimed.
